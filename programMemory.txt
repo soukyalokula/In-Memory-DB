@@ -1,0 +1,163 @@
+
+//Programmer : Soukya Lokula
+//A program for in memory database
+
+#include <map>
+#include <stack>
+#include <string>
+#include <iostream>
+#include <algorithm>
+
+
+using namespace std;
+
+//Function to set the value of a variable
+void setCommand(map<string,int>& m,string s,int v)
+{
+    m[s]=v;         
+}
+
+//Function to get the value of a variable
+void getCommand(map<string,int>& m,string s)
+{
+    for(auto& x:m)
+        {
+            if(x.first == s)
+            {    
+                cout<<"> "<<x.second<<endl;
+                return;
+            }
+        }
+    cout<<"> NULL"<<endl;
+}
+
+//Function to clear the value of a variable
+void unsetCommand(map<string,int>& m,string s)
+{
+    m.erase(s);
+}
+
+//Function to find out the total number of variables of a value
+void numequaltoCommand(map<string,int>& m,int v)
+{
+    int count = 0;
+    
+    for(auto& x:m)
+        {
+            if(x.second == v)
+            {
+                ++count;
+            }
+        }
+    cout<<"> "<<count<<endl;
+}
+
+//Function to begin a transaction
+void beginCommand(stack<map<string,int>>& s,map<string,int>& m)
+{
+    if(m.empty())
+        return;
+      
+    map<string,int> t;
+    t = m;
+    s.push(t);
+}
+
+//Function to rollback to previous state
+void rollbackCommand(stack<map<string,int>>& s,map<string,int>& m)
+{
+    if(s.empty())
+    {
+        m.clear();
+    }
+    else
+    {
+        m = s.top();
+        s.pop();
+    }
+}
+
+//Function to commit the changes made
+void commitCommand(stack<map<string,int>>& s)
+{
+    while(!s.empty())
+    {
+        s.pop();
+    }
+}
+
+
+int main() {
+    
+    string input;
+    map<string,int> mapDB;
+    
+    stack<map<string,int>> stackDB;
+    bool T = false;
+    
+    while(cin)
+    {
+        string name;
+        int value;
+        cin>>input;
+        
+        if(input=="SET")
+        {
+            cin>>name;
+            cin>>value;
+            cout<<"SET "<<name<<" "<<value<<endl;
+            setCommand(mapDB,name,value);
+        }
+        else if(input == "GET")
+        {
+            cin>>name;
+            cout<<"GET "<<name<<endl;
+            getCommand(mapDB,name);
+        }
+        else if(input == "UNSET")
+        {
+            cin>>name;
+            cout<<"UNSET "<<name<<endl;
+            unsetCommand(mapDB,name);
+        }
+        else if(input == "NUMEQUALTO")
+        {
+            cin>>value;
+            cout<<"NUMEQUALTO "<<value<<endl;
+            numequaltoCommand(mapDB,value);
+        }
+        else if(input == "END")
+        {
+            cout<<"END"<<endl;
+            return 0;
+        }
+        else if(input == "BEGIN")
+        {
+            T = true;
+            cout<<"BEGIN"<<endl;
+            beginCommand(stackDB,mapDB);    
+        }
+        else if(input == "ROLLBACK")
+        {
+            cout<<"ROLLBACK"<<endl;
+            if(T)
+                rollbackCommand(stackDB,mapDB);
+            else
+                cout<<"> NO TRANSACTION"<<endl;
+        }
+        else if(input == "COMMIT")
+        {
+            cout<<"COMMIT"<<endl;
+            if(T)
+            {
+                commitCommand(stackDB);
+                T = false;
+            }
+            else
+                cout<<"> NO TRANSACTION"<<endl;
+                
+        }
+    }
+    return 0;
+}
+
